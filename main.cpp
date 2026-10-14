@@ -1,40 +1,69 @@
 #include <iostream>
-#include <vector>
 #include <random>
-#include <cmath>
+#include <vector>
 #include <SFML/Graphics.hpp>
 
-constexpr int W_WIDTH = 1600;
-constexpr int W_HEIGHT = 800;
-constexpr float REC_WIDTH_MAX = W_WIDTH - 465;
-constexpr float REC_HEIGHT_MAX = W_HEIGHT - 280;
-constexpr float REC_WIDTH_MIN = W_WIDTH / 80;
-constexpr float REC_HEIGHT_MIN = W_HEIGHT / 16;
+#define print(item) std::cout << item << '\n';
+
+// window size
+constexpr unsigned int WINDOW_WIDTH = 1600;
+constexpr unsigned int WINDOW_HEIGHT = 800;
+
+// margin size both on right and left side will be 20
+constexpr float MARGIN_SIDE = 20.f;
+
+// top margin
+constexpr float TOP_MARGIN = 40.f;
+
+// gap between bar
+constexpr float GAP = 5.f; 
+
+// total bar we want rendered
+constexpr int BAR_COUNT = 50;
+
+// maximum and minimum height for bar
+constexpr float MAX_BAR_HEIGHT = WINDOW_HEIGHT - TOP_MARGIN;
+constexpr float MIN_BAR_HEIGHT = 30.f;
+
+// now, we calculate useable window size after margin apply on both side
+constexpr float USEABLE_WINDOW = WINDOW_WIDTH - (2.f * MARGIN_SIDE);
+
+// next we calculate bar width;
+constexpr float BAR_WIDTH = (USEABLE_WINDOW - (BAR_COUNT - 1) * GAP) / BAR_COUNT;
+
+// after all we calculate total window width used by all element we want rendered
+constexpr float TOTAL_USED_WINDOW_WIDTH = BAR_COUNT * BAR_WIDTH + (BAR_COUNT - 1) * GAP;
+
+// 
+constexpr float START_X = (WINDOW_WIDTH - TOTAL_USED_WINDOW_WIDTH) / 2.f;
 
 
 int main()
 {
+	/*print(MIN_BAR_HEIGHT);
+	print(MAX_BAR_HEIGHT);
+	print(USEABLE_WINDOW);
+	print(BAR_WIDTH);
+	print(TOTAL_USED_WINDOW_WIDTH);
+	print(START_X);
+	print("--------------------------------------------------------------------------------");*/
+
+	auto window = sf::RenderWindow(sf::VideoMode({ WINDOW_WIDTH, WINDOW_HEIGHT }), "Insertion Sort Visualize", sf::Style::Default, sf::State::Windowed);
+	
+	window.setFramerateLimit(30);
+
+	bool running = true;
+
+	std::vector<float> heights;
+	heights.reserve(BAR_COUNT);
+
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_real_distribution height_dist(REC_HEIGHT_MIN, REC_HEIGHT_MAX);
+	std::uniform_real_distribution<float> height_dist(MIN_BAR_HEIGHT, MAX_BAR_HEIGHT);
 
-	std::vector<sf::RectangleShape> rectangles = {};
-
-	sf::RenderWindow window(sf::VideoMode({ W_WIDTH, W_HEIGHT }), "Insertion Sort Visualize", sf::Style::Default, sf::State::Windowed);
-
-	std::cout << "data -n: w h\n";
-
-	for (size_t i = 0; i < 100; i++)
+	for (std::size_t i = 0; i < BAR_COUNT; ++i)
 	{
-		auto width_gen = 20.0f;
-		auto height_gen = std::round(height_dist(gen));
-
-		auto rec = sf::RectangleShape({ width_gen, height_gen });
-		rec.setFillColor(sf::Color::Green);
-		rec.setPosition(sf::Vector2f(width_gen + (width_gen * i), W_HEIGHT - height_gen));
-
-		std::cout << "data -" << i + 1 << ": " << width_gen << ' ' << height_gen << '\n';
-		rectangles.push_back(rec);
+		heights.push_back(height_dist(gen));
 	}
 
 	while (window.isOpen())
@@ -49,22 +78,39 @@ int main()
 
 		window.clear(sf::Color::Black);
 
-		for (size_t i = 1; i < rectangles.size(); i++) {
-			window.draw(rectangles[i]);
+		for (std::size_t i = 0; i < BAR_COUNT; ++i)
+		{
+			const float x_pos = START_X + i * (BAR_WIDTH + GAP);
+			const float height = heights[i];
+			const float y_pos = WINDOW_HEIGHT - height;
 
-			float key = rectangles[i].getSize().y;
-			float j = i - 1;
-			while (j >= 0 && rectangles[j].getSize().y > key)
+			float key = heights[i];
+			int j = i - 1;
+			int current = j + 1;
+			/*print(i+1);
+			print(x_pos);
+			print(y_pos);
+
+			if (i == 1) break;*/
+
+			sf::RectangleShape bar;
+			bar.setFillColor(sf::Color::Yellow);
+			bar.setSize({ BAR_WIDTH, height });
+			bar.setPosition({ x_pos, y_pos });
+
+			window.draw(bar);
+
+			if (j >= 0 && heights[j] > key)
 			{
-				rectangles[j + 1] = rectangles[j];
-				j = j - 1;
+				heights[current] = heights[j];
+				--j;
 			}
-			rectangles[j + 1] = rectangles[i];
-
+			heights[j + 1] = key;
+			sf::sleep(sf::milliseconds(1.900));
 		}
-
+		
 		window.display();
 	}
-
+	
 	return 0;
 }
