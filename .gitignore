@@ -19,3 +19,8 @@ build/
 *.dll
 *.lib
 *.exp
+
+# Raw recordings and screenshots (only docs/demo.gif is published)
+docs/*.mp4
+docs/Screenshot*
+docs/siap.png
