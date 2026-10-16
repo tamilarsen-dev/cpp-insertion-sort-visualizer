@@ -3,6 +3,7 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
+//lazy mode
 #define print(item) std::cout << item << '\n';
 
 // window size
@@ -19,7 +20,7 @@ constexpr float TOP_MARGIN = 40.f;
 constexpr float GAP = 5.f; 
 
 // total bar we want rendered
-constexpr int BAR_COUNT = 20;
+constexpr int BAR_COUNT = 75;
 
 // maximum and minimum height for bar
 constexpr float MAX_BAR_HEIGHT = WINDOW_HEIGHT - TOP_MARGIN;
@@ -63,10 +64,12 @@ int main()
 	for (std::size_t i = 0; i < BAR_COUNT; ++i)
 	{
 		heights.push_back(height_dist(gen));
+		std::cout << heights[i] << '\n';
 	}
 
 	bool inserting = false;
 	bool sortingFinished = heights.size() < 2;
+	bool start = true;
 	float key = 0.f;
 	int j = -1;
 	std::size_t m = 1;
@@ -93,10 +96,17 @@ int main()
 			{
 				window.close();
 			}
+			else if (const auto* keyPressed = events->getIf<sf::Event::KeyPressed>())
+			{
+				if (keyPressed->scancode == sf::Keyboard::Scancode::Space)
+				{
+					start = !start;
+				}
+			}
 		}
 
 		// 2. update data
-		if (!sortingFinished && stepClock.getElapsedTime().asSeconds() >= STEP_INTERVAL)
+		if (!start && !sortingFinished && stepClock.getElapsedTime().asSeconds() >= STEP_INTERVAL)
 		{
 			stepClock.restart();
 			if (!inserting)
